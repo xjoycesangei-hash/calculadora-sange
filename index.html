@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sange do Brasil — Acesso</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0f0f11;
+    --surface:  #1a1a1f;
+    --surface2: #222228;
+    --border:   #2e2e38;
+    --text:     #e8e8f0;
+    --muted:    #7a7a8c;
+    --accent:   #c084fc;
+    --accent2:  #a855f7;
+    --red:      #f87171;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+
+  .brand {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+
+  .icon-lock {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  input[type="password"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    text-align: center;
+    padding: 14px;
+    outline: none;
+    transition: border-color .2s;
+    letter-spacing: 0.1em;
+  }
+  input[type="password"]:focus { border-color: var(--accent2); }
+  input[type="password"]::placeholder { color: var(--muted); letter-spacing: normal; }
+
+  button {
+    width: 100%;
+    background: var(--accent2);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  button:hover { background: var(--accent); }
+  button:active { transform: scale(0.98); }
+
+  .error-msg {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 12px;
+    min-height: 16px;
+  }
+
+  .footer-note {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div class="icon-lock">🔒</div>
+    <div class="brand">Sange do Brasil</div>
+    <h1>Calculadora de Precificação</h1>
+    <p class="subtitle">Acesso restrito — digite a senha</p>
+
+    <form id="login-form" onsubmit="return checkPassword(event)">
+      <input type="password" id="password-input" placeholder="••••••••" autocomplete="current-password" autofocus>
+      <button type="submit">Entrar</button>
+      <div class="error-msg" id="error-msg"></div>
+    </form>
+
+    <div class="footer-note">Acesso interno · Sange do Brasil</div>
+  </div>
+
+<script>
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  const HASH_CORRETO = "2f5dc1eb7d90876dff5a3cc32d4970ea43a35eff82c2d0cdf2631faeae8c9de4";
+
+  async function checkPassword(e) {
+    e.preventDefault();
+    const input = document.getElementById('password-input');
+    const errorMsg = document.getElementById('error-msg');
+    const senha = input.value;
+
+    const hash = await sha256(senha);
+
+    if (hash === HASH_CORRETO) {
+      sessionStorage.setItem('sange_auth', 'ok');
+      sessionStorage.setItem('sange_auth_time', Date.now().toString());
+      window.location.href = 'app.html';
+    } else {
+      errorMsg.textContent = 'Senha incorreta. Tente novamente.';
+      input.value = '';
+      input.focus();
+    }
+    return false;
+  }
+
+  // Se já autenticado nesta sessão, vai direto pra calculadora
+  if (sessionStorage.getItem('sange_auth') === 'ok') {
+    window.location.href = 'app.html';
+  }
+</script>
+
+</body>
+</html>
